@@ -2969,11 +2969,22 @@ Error* Compiler__compile(Compiler* self, CodeObject* out) {
     return NULL;
 }
 
+pk_TokenFilter pk_token_filter = NULL;
+
 Error* pk_compile(SourceData_ src, CodeObject* out) {
     Token* tokens;
     int tokens_length;
     Error* err = Lexer__process(src, &tokens, &tokens_length);
     if(err) return err;
+
+    if(pk_token_filter) {
+        err = pk_token_filter(src, &tokens, &tokens_length);
+        if(err) {
+            destruct_tokens(tokens, tokens_length);
+            PK_FREE(tokens);
+            return err;
+        }
+    }
 
 #if 0
     Token* data = (Token*)tokens.data;
